@@ -1,0 +1,26 @@
+%% Minimal beamerConfig to support the provided template
+\ProvidesPackage{beamerConfig}[2026/01/06 Minimal beamer theme]
+\RequirePackage{etoolbox}
+\RequirePackage{beamer}
+
+% Options (ignored, for compatibility with template)
+\DeclareOption*{\relax}
+\ProcessOptions\relax
+
+% Basic theme setup
+\mode<presentation>{
+  \usetheme{Madrid}
+  \usecolortheme{default}
+  \setbeamertemplate{navigation symbols}{}
+  \setbeamertemplate{footline}[frame number]
+}
+
+% Title page configuration macro used by the template
+\newcommand{\configuretitlepage}{%
+  % Map user macros to beamer metadata
+  \title[\mytitle]{\mytitle}
+  \ifcsdef{mysubtitle}{\subtitle{\mysubtitle}}{\relax}
+  \author[\myauthor]{\myauthor\\\footnotesize\myauthorurl}
+  \institute[\myinstitute]{\myinstitute}
+  \date{\mydate}
+}

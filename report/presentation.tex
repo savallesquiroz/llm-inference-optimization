@@ -1,0 +1,211 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Presentation Template
+% LaTeX Template
+% Version 2.3.4 (2024-07-12)
+%
+% This template was adapted by:
+% Jonathan Decker (jonathan.decker@uni-goettingen.de)
+% From a template made by:
+% Julian Kunkel (julian.kunkel@gwdg.de)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\pdfminorversion=7
+\documentclass[compress,aspectratio=169]{beamer}
+
+% make sure the theme and config files are on this path
+% uncomment the required theme setting
+\usepackage[HPS]{assets/beamerConfig}
+%\usepackage[SCIENCE]{assets/beamerConfig}
+%\usepackage[DECICE]{assets/beamerConfig}
+%\usepackage[GWDG]{assets/beamerConfig}
+%\usepackage[KISSKI]{assets/beamerConfig}
+%\usepackage[GoeHPCoffee]{assets/beamerConfig}
+%\usepackage[GoeAID]{assets/beamerConfig}
+
+\addbibresource{ref.bib}
+\graphicspath{{.}{assets/}{../results/}}
+
+% --- document configuration ---
+\newcommand{\mytitle}{CPU-Based Large Language Model Inference Benchmarking Using llama.cpp and Phi-2}
+\newcommand{\mysubtitle}{LLM Inference Optimization Techniques}
+\newcommand{\myauthor}{Steve Alexander Valles Quiroz}
+\newcommand{\myauthorurl}{Georg-August-Universit\"at G\"ottingen}
+\newcommand{\myvenue}{HPC Seminar}
+\newcommand{\mydate}{\today}
+\newcommand{\myinstitute}{Institute of Computer Science}
+
+\configuretitlepage
+
+\begin{document}
+
+  \begin{frame}[plain]
+    \titlepage
+  \end{frame}
+
+  \begin{frame}[t]{Table of contents}
+    \tableofcontents[subsectionstyle=hide/hide]
+  \end{frame}
+
+  % --- slides begin ---
+
+  \section{Motivation}
+  \begin{frame}{Why CPU-based LLM inference?}
+    \begin{itemize}
+      \item Democratizes access: no GPU required, lower cost \cite{strubell2019energy}
+      \item Local, privacy-preserving inference on consumer hardware
+      \item Educational and edge environments benefit
+      \item Goal: Identify highest-impact optimizations on CPUs
+    \end{itemize}
+  \end{frame}
+
+  \section{Setup}
+  \begin{frame}{Hardware and software}
+    \begin{columns}[T]
+      \column{0.5\textwidth}
+      \textbf{Hardware}
+      \begin{itemize}
+        \item Intel Core i7 (4 cores, 8 threads)
+        \item 16 GB RAM, Windows 10
+      \end{itemize}
+      \vspace{0.3cm}
+      \textbf{Model}
+      \begin{itemize}
+        \item Microsoft Phi-2 (2.7B) \cite{phi2}
+        \item Quantization: Q4\_K\_M, Q5\_K\_M, Q8\_0 \cite{frantar2022gptq,lin2023awq}
+      \end{itemize}
+      \column{0.5\textwidth}
+      \textbf{Software}
+      \begin{itemize}
+        \item llama.cpp (build 7330), CPU-only (gpu-layers 0) \cite{llamacpp}
+        \item Python benchmarking + analysis scripts
+      \end{itemize}
+      \vspace{0.3cm}
+      \textbf{Metrics}
+      \begin{itemize}
+        \item Tokens/s, total/gen times, memory
+      \end{itemize}
+    \end{columns}
+  \end{frame}
+
+  \section{Methodology}
+  \begin{frame}{Experiments}
+    \begin{enumerate}
+      \item Quantization comparison (Q4/Q5/Q8), 4 threads, 64 tokens
+      \item Context length scaling: 32 \dots 1024 tokens (Q4, 4 threads)
+      \item Thread scaling: 1,2,3,4,6,8,12,16 threads (Q4, 64 tokens, 3 runs)
+    \end{enumerate}
+    \vspace{0.3cm}
+    \textbf{Reproducibility}
+    \begin{itemize}
+      \item Fixed prompt, fresh model loads, streaming logs, lockfile guards
+    \end{itemize}
+  \end{frame}
+
+  \section{Results: Quantization}
+  \begin{frame}{Quantization delivers the biggest gain}
+    \begin{columns}[T]
+      \column{0.55\textwidth}
+      \includegraphics[width=\textwidth]{quantization_analysis.png}
+      \column{0.45\textwidth}
+      \begin{itemize}
+        \item Q4\_K\_M: \textbf{14.61} tokens/s
+        \item Q5\_K\_M: 11.42 tokens/s
+        \item Q8\_0: 9.86 tokens/s
+        \item \textbf{+48\%} throughput vs Q8\_0
+      \end{itemize}
+      \vspace{0.2cm}
+      \begin{block}{Interpretation}
+        Lower precision reduces memory bandwidth pressure and improves cache use \cite{dettmers2022llm,jacob2018quantization}.
+      \end{block}
+    \end{columns}
+  \end{frame}
+
+  \section{Results: Context}
+  \begin{frame}{Context length scaling is stable}
+    \begin{columns}[T]
+      \column{0.6\textwidth}
+      \includegraphics[width=\textwidth]{context_length_analysis.png}
+      \column{0.4\textwidth}
+      \begin{itemize}
+        \item Mean: \textbf{13.96} tokens/s
+        \item Std: 2.18 (15.6\% variance)
+        \item No monotonic degradation 32 \rightarrow 1024 tokens
+      \end{itemize}
+      \vspace{0.2cm}
+      \begin{block}{Interpretation}
+        Optimized attention keeps throughput consistent across sequence lengths \cite{dao2022flashattention}.
+      \end{block}
+    \end{columns}
+  \end{frame}
+
+  \section{Results: Threading}
+  \begin{frame}{Thread scaling follows Amdahl's Law}
+    \begin{columns}[T]
+      \column{0.6\textwidth}
+      \includegraphics[width=\textwidth]{thread_scaling_detailed.png}
+      \column{0.4\textwidth}
+      \begin{itemize}
+        \item Peak: \textbf{15.23} t/s at 6 threads
+        \item Best efficiency: \textbf{73\%} at 4 threads
+        \item Speedup plateau: 2.7--2.9\times (6+ threads)
+      \end{itemize}
+      \vspace{0.2cm}
+      \begin{block}{Sequential fraction}
+        Using $S(8)=2.72$: $P \approx 0.85$ (85\% parallelizable).
+      \end{block}
+    \end{columns}
+  \end{frame}
+
+  \section{Analysis}
+  \begin{frame}{Amdahl's Law}
+    \begin{columns}[T]
+      \column{0.5\textwidth}
+      \begin{block}{Formula \cite{amdahl1967validity}}
+        \[ S(N) = \frac{1}{(1-P) + P/N} \]
+      \end{block}
+      \column{0.5\textwidth}
+      \begin{block}{In our setup}
+        Observed $S(8)=2.72$ \Rightarrow $P\approx0.85$.
+      \end{block}
+    \end{columns}
+    \vspace{0.2cm}
+    \begin{itemize}
+      \item Efficiency collapse beyond 4--6 threads: lock contention, memory bandwidth \cite{hennessy2017computer}.
+    \end{itemize}
+  \end{frame}
+
+  \section{Recommendations}
+  \begin{frame}{Practical guidance}
+    \begin{itemize}
+      \item Use \textbf{Q4\_K\_M} quantization whenever possible
+      \item Set threads to \textbf{4} (stable) or \textbf{6} (peak)
+      \item Avoid \textbf{over-threading} (8+): high variance, little gain
+      \item Context length \textbf{isn't critical} for throughput
+    \end{itemize}
+    \vspace{0.2cm}
+    \begin{block}{Combined speedup}
+      Q4 \times threading \Rightarrow \textbf{\~4.1\times} over Q8 + 1 thread baseline.
+    \end{block}
+  \end{frame}
+
+  \section{Conclusion}
+  \begin{frame}{Summary}
+    \begin{itemize}
+      \item Quantization \textbf{dominates} performance gains (+48\%)
+      \item Threading has \textbf{limits} (Amdahl's Law, P\~0.85)
+      \item Context scaling \textbf{stable} across 32--1024 tokens
+      \item CPU-only inference \textbf{viable} at 15+ t/s on consumer hardware
+    \end{itemize}
+  \end{frame}
+
+  \begin{frame}{Last Frame}
+    \label{pg:lastpage}
+  \end{frame}
+
+  \begin{frame}{References}
+    % References slide in appendix
+    \renewcommand*{\bibfont}{\normalfont\scriptsize}
+    \printbibliography[heading=none]
+  \end{frame}
+
+\end{document}

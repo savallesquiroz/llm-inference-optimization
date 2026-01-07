@@ -1,0 +1,105 @@
+# Top-level .gitignore for llm-inference-optimization
+# Adjust as needed; scoped rules aim to ignore build artifacts and large models
+
+# --- OS / Editor ---
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+# macOS
+.DS_Store
+# VS Code
+.vscode/
+.history/
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.pyo
+.env
+.venv/
+venv/
+env/
+.pip-*-cache/
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.coverage
+coverage.xml
+htmlcov/
+.hypothesis/
+.ipynb_checkpoints/
+
+# --- LaTeX (scoped to report) ---
+report/*.aux
+report/*.log
+report/*.out
+report/*.toc
+report/*.bbl
+report/*.blg
+report/*.bcf
+report/*.run.xml
+report/*.lof
+report/*.lot
+report/*.fls
+report/*.fdb_latexmk
+report/*.synctex.gz
+report/*-eps-converted-to.pdf
+report/_minted*
+# Uncomment if you do NOT want PDFs tracked
+# report/*.pdf
+
+# --- C/C++ / Toolchain Artifacts ---
+# Object and binaries
+*.o
+*.obj
+*.dll
+*.so
+*.dylib
+*.lib
+*.exp
+*.pdb
+*.idb
+*.ilk
+*.exe
+
+# Visual Studio / CMake
+.vs/
+**/CMakeFiles/
+**/CMakeCache.txt
+**/cmake_install.cmake
+**/CTestTestfile.cmake
+**/*.dir/
+**/Testing/
+**/*.sln
+**/*.vcxproj*
+**/*.xcodeproj/
+**/*.ninja
+**/build.ninja
+**/compile_commands.json
+
+# llama.cpp build outputs (keep source, ignore generated)
+llama.cpp/build/
+llama.cpp/**/bin/
+llama.cpp/**/x64/
+
+# --- Results (logs/debug) ---
+results/logs/
+results/debug/
+
+# --- Models (large files) ---
+models/**/*.gguf
+# To track a specific small demo model, uncomment the next line and adapt the name
+# !models/tinyllama-1.1b-chat.Q4_K_M.gguf
+
+# --- Logs / Temp ---
+*.log
+*.tmp
+*.temp
+
+# --- Misc caches ---
+.cache/
+.nox/

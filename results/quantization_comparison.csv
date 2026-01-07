@@ -1,0 +1,4 @@
+tokens_per_sec,prompt_tokens,generated_tokens,total_time_ms,prompt_time_ms,generation_time_ms,memory_mb,model,threads,n_tokens,timestamp
+14.61,0,0,4681.43,351.19,4312.3,0,phi-2.Q4_K_M.gguf,4,64,2026-01-05T19:26:32.660355
+11.42,0,0,1826.11,595.88,1225.85,0,phi-2.Q5_K_M.gguf,4,64,2026-01-05T19:26:38.644542
+9.86,0,0,6132.27,645.9,5474.43,0,phi-2.Q8_0.gguf,4,64,2026-01-05T19:26:49.415746
